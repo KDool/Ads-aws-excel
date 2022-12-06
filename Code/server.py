@@ -48,7 +48,7 @@ def setup_manual():
         # return render_template('./home.html')
         return send_file(out, attachment_filename="testing.xlsx", as_attachment=True)
     else:
-        return render_template('./home.html')
+        return render_template('./setup_manual_asin.html')
     # return send_file(out, attachment_filename="testing.xlsx", as_attachment=True)
 
 
