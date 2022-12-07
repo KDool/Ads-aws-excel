@@ -46,15 +46,7 @@ def setup_manual():
         print('ASIN DF ==============================================: ',asin_df)
         setup_dataframes_list.append(asin_df)
         print('SET UP DATA LIST============================: ', setup_dataframes_list)
-        # #     # Creating output and writer (pandas excel writer)
-        # out = BytesIO()
-        # writer = pd.ExcelWriter(out, engine='xlsxwriter')
 
-        # # Export data frame to excel
-        # output_df.to_excel(excel_writer=writer, index=False, sheet_name='Sheet1')
-        # writer.save()
-        # writer.close()
-        # out.seek(0)
         return render_template('./setup_manual_asin.html')
         # return send_file(out, download_name="testing.xlsx", as_attachment=True)
     elif request.method == 'POST' and request.form['button_action'] == 'Keyword Append':
