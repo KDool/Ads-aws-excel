@@ -91,7 +91,8 @@ def setup_manual():
         out.seek(0)
         
         setup_dataframes_list = [] #### Clean DataFrame
-        return send_file(out, download_name="testing.xlsx", as_attachment=True)
+        # return send_file(out, download_name="testing.xlsx", as_attachment=True)
+        return send_file(out, attachment_filename="testing.xlsx", as_attachment=True)
     else:
         return render_template('./setup_manual_asin.html')
     # return send_file(out, attachment_filename="testing.xlsx", as_attachment=True)
