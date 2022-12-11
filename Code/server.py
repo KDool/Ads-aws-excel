@@ -1,16 +1,29 @@
 from cgi import test
 from logging.handlers import RotatingFileHandler
 from unittest import result
-from flask import Flask, render_template, request, redirect,send_file
+from flask import Flask, render_template, request, redirect,send_file,flash,url_for
 from graphviz import render
 from matplotlib.pyplot import bar_label
 import yaml
 import sys
 import pandas as pd
 import setup
+import optimize
 from io import BytesIO
+from werkzeug.utils import secure_filename
+import os
 
+
+
+
+UPLOAD_FOLDER = '../temp_uploads'
+ALLOWED_EXTENSIONS = {'xlsx'}
+
+# app = Flask(__name__)
 app = Flask(__name__,template_folder='template')
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+
 
   # List of SetUp dataframe manuals -- Recreate when Total submit button action
 global setup_dataframes_list
@@ -96,6 +109,45 @@ def setup_manual():
     else:
         return render_template('./setup_manual_asin.html')
     # return send_file(out, attachment_filename="testing.xlsx", as_attachment=True)
+
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.route('/upload')
+def upload_file():
+   return render_template('upload.html')
+	
+@app.route('/uploader', methods = ['GET', 'POST'])
+def uploader_file():
+    if request.method == 'POST':
+        f = request.files['file']
+        f.save(secure_filename(f.filename))
+
+        acos = float(request.form['Acos'])
+        clicks = int(request.form['Clicks'])
+        spend = float(request.form['Spend'])
+        print(acos,clicks,spend)
+
+        df_CSP = optimize.read_CSP_report(excel_file=f,sheet_name='Sponsored Product Search Term R')
+        df_CSP_filter = optimize.filter_CSP_negative(CSP_df=df_CSP,acos=acos,clicks=clicks,spend=spend)
+        df_cd = optimize.get_campid_toDF(filtered_df=df_CSP_filter,table_name='table_bulk_products')
+        df_export = optimize.export_excel_files(filtered_df=df_cd)
+        
+        out = BytesIO()
+        writer = pd.ExcelWriter(out, engine='xlsxwriter')
+        # Export data frame to excel
+        df_export.to_excel(excel_writer=writer, index=False, sheet_name='Sheet1')
+        writer.save()
+        writer.close()
+        out.seek(0)
+
+        return send_file(out, attachment_filename="testing.xlsx", as_attachment=True)
+    #   print(df)
+    # return 'Uploaded sucessfully'
+
+# @app
 
 
 if __name__ == '__main__':
