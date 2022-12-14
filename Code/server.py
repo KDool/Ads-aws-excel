@@ -7,7 +7,8 @@ from matplotlib.pyplot import bar_label
 import yaml
 import sys
 import pandas as pd
-import setup
+import setup_manual
+import setup_Auto
 import optimize
 from io import BytesIO
 from werkzeug.utils import secure_filename
@@ -31,66 +32,27 @@ setup_dataframes_list = []
 
 @app.route('/setup-manual',methods=['GET', 'POST'])
 # global setup_dataframes_list
-def setup_manual():
+def setup_bulk():
     # return redirect('/user')
     global setup_dataframes_list
     # setup_dataframes_list = []
-    cam_id = ''
-    asin_list = []
-    budget = ''
-    product_name = ''
-    bid=''
-    billing_strategy = ''
-    if request.method == 'POST' and request.form['button_action'] == 'Asin Append':
-        cam_id = request.form['camp_name']
-        asin_list = request.form['asin_list'].split(',')
-        budget = request.form['budget']
-        product_name = request.form['product_name']
-        bid = request.form['bid']
-        billing_strategy = request.form['billing_strategy']
 
-        print('cam id: ',cam_id)
-        print('Asin_list: ',asin_list)
-        print('budget: ',budget)
-        print('Product Name: ',product_name)
-        print('Bid: ',bid)
-        print('Billing Strategy: ',billing_strategy)
-        asin_df = setup.createDataFrame_asin(cam_id=cam_id,asin_list=asin_list,budget=budget,productName=product_name,bid=bid,billing_strategy=billing_strategy)
-        print('ASIN DF ==============================================: ',asin_df)
-        setup_dataframes_list.append(asin_df)
-        print('SET UP DATA LIST============================: ', setup_dataframes_list)
-
+    if request.method == 'POST' and request.form['setup'] == 'sp_manual':
+        f = request.files['file_input']
+        input_df = pd.read_excel(f,index_col=False)
+        print('SP Manual')
+        print(input_df)
+        bulk_dataframe = setup_manual.create_bulk_dataframe(input_df)
+        print(bulk_dataframe)
         return render_template('./setup_manual_asin.html')
         # return send_file(out, download_name="testing.xlsx", as_attachment=True)
-    elif request.method == 'POST' and request.form['button_action'] == 'Keyword Append':
-        cam_id = request.form['camp_name']
-        keyword_list = request.form['keyword_list'].split(',')
-        budget = request.form['budget']
-        product_name = request.form['product_name']
-        bid = request.form['bid']
-        billing_strategy = request.form['billing_strategy']
-        match_type = request.form['match_type']
-        portfolio_id = request.form['portfolio_id']
-
-        print('cam id: ',cam_id)
-        print('keyword_list: ',keyword_list)
-        print('budget: ',budget)
-        print('Product Name: ',product_name)
-        print('Bid: ',bid)
-        print('Billing Strategy: ',billing_strategy)
-        print('Portfolio_Id: ',portfolio_id)
-        print('Match Type: ',match_type)
-        
-        kw_df = setup.createDataFrame_keyword(cam_id=cam_id,keyword_list=keyword_list,
-                                              budget=budget,productName=product_name,bid=bid,
-                                              billing_strategy=billing_strategy,portfolio_id=portfolio_id,
-                                              match_type=match_type)
-        # print('Keyword DF: ',kw_df)
-        
-        setup_dataframes_list.append(kw_df)
-        
-        # print("")
-        print('SET UP DATA LIST============================: ', setup_dataframes_list)
+    elif request.method == 'POST' and request.form['setup'] == 'sp_auto':
+        f = request.files['file_input']
+        input_df = pd.read_excel(f,index_col=False)
+        print('SP Auto')
+        print(input_df)
+        bulk_dataframe = setup_Auto.createResultDataFrame(input_df)
+        print(bulk_dataframe)
         return render_template('./setup_manual_asin.html')
     elif request.method == 'POST' and request.form['button_action'] == 'Total Submit':
         print('SET UP DATA LIST============================: ', setup_dataframes_list)
@@ -148,6 +110,11 @@ def uploader_file():
     # return 'Uploaded sucessfully'
 
 # @app
+
+
+
+
+
 
 
 if __name__ == '__main__':
