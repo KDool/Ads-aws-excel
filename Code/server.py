@@ -106,11 +106,7 @@ def uploader_file():
         out.seek(0)
 
         return send_file(out, attachment_filename="testing.xlsx", as_attachment=True)
-    #   print(df)
     # return 'Uploaded sucessfully'
-
-# @app
-
 
 
 
