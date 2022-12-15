@@ -9,6 +9,7 @@ import sys
 import pandas as pd
 import setup_manual
 import setup_Auto
+import setup_SD
 import optimize
 from io import BytesIO
 from werkzeug.utils import secure_filename
@@ -52,6 +53,14 @@ def setup_bulk():
         print('SP Auto')
         print(input_df)
         bulk_dataframe = setup_Auto.createResultDataFrame(input_df)
+        print(bulk_dataframe)
+        return render_template('./setup_manual_asin.html')
+    elif request.method == 'POST' and request.form['setup'] == 'sd':
+        f = request.files['file_input']
+        input_df = pd.read_excel(f,index_col=False)
+        print('SD')
+        print(input_df)
+        bulk_dataframe = setup_SD.createResultDataFrame(input_df)
         print(bulk_dataframe)
         return render_template('./setup_manual_asin.html')
     elif request.method == 'POST' and request.form['button_action'] == 'Total Submit':

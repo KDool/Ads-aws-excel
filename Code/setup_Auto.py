@@ -61,7 +61,7 @@ def createDataFrame_Auto(cam_id,budget,productName,bid,bidding_strategy,percenta
 def createResultDataFrame(input_df:pd.DataFrame):
     framelist = []
     for i in range(len(input_df)):
-        cam_id = str(input_df.iloc[i]['CODE']) +  str(input_df.iloc[i]['Market']) + str(input_df.iloc[i]['PPC Type']) + str(input_df.iloc[i]['Match type'])+ str(input_df.iloc[i]['BRAND']) + str(input_df.iloc[i]['Date']) +str(input_df.iloc[i]['PIC'] + str(input_df.iloc[i]['STT']))
+        cam_id = str(input_df.iloc[i]['CODE']) + ' ' +  str(input_df.iloc[i]['Market']) + ' ' + str(input_df.iloc[i]['PPC Type']) + ' ' + str(input_df.iloc[i]['Match type'])+ ' ' + str(input_df.iloc[i]['BRAND']) + ' ' + str(input_df.iloc[i]['Date']) +' ' + str(input_df.iloc[i]['PIC'] +' ' +  str(input_df.iloc[i]['STT']))
         temp_df = createDataFrame_Auto(cam_id=cam_id,budget=input_df.iloc[i]['Budget'],productName=input_df.iloc[i]['SKU'],
                                         bid=input_df.iloc[i]['Bid'], bidding_strategy=input_df.iloc[i]['Bid strategy'],percentage="{:.0%}".format(input_df.iloc[i]['Percentage']),date=str(input_df.iloc[i]['Date']))
         

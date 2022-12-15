@@ -125,7 +125,7 @@ def createDataFrameSP_keyword(cam_id,keyword_list:list,budget,productName,bid,bi
 def create_bulk_dataframe(input_df:pd.DataFrame):
     dataframes_list =[] 
     for i in range(len(input_df)):
-        cam_id = str(input_df.iloc[i]['CODE']) +  str(input_df.iloc[i]['Market']) + str(input_df.iloc[i]['PPC Type']) + str(input_df.iloc[i]['Match type'])+ str(input_df.iloc[i]['BRAND']) + str(input_df.iloc[i]['Date']) +str(input_df.iloc[i]['PIC'] + str(input_df.iloc[i]['STT']))
+        cam_id = str(input_df.iloc[i]['CODE']) + ' ' +  str(input_df.iloc[i]['Market']) + ' ' + str(input_df.iloc[i]['PPC Type']) + ' ' + str(input_df.iloc[i]['Match type'])+ ' ' + str(input_df.iloc[i]['BRAND']) +' ' + str(input_df.iloc[i]['Date']) +' ' + str(input_df.iloc[i]['PIC'] + ' ' + str(input_df.iloc[i]['STT']))
         kw_as_list = str(input_df.iloc[i]['Targeting']).split(',')
         if input_df.iloc[i]['Targeting type'] == 'KW':
             kw_df = createDataFrameSP_keyword(cam_id=cam_id,keyword_list=kw_as_list,budget=input_df.iloc[i]['Budget'],productName=input_df.iloc[i]['SKU'],
