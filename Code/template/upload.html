@@ -2,11 +2,19 @@
    <body>
       <form action = "/uploader" method = "POST" 
          enctype = "multipart/form-data">
-         <input type = "file" name = "file_bulk" />
-         <input type = "file" name = "file_report" />
+         <label>File Bulk</label>
+         <input type = "file" name = "file_bulk" /><br>
+         <label>File Report CSP</label>
+         <input type = "file" name = "file_report" /><br>
          <input type="text" id="query" name="Acos" placeholder="Acos " >
          <input type="text" id="query" name="Clicks" placeholder="Number of Clicks ">
          <input type="text" id="query" name="Spend" placeholder="Spend" >
+         <label for="setup_type">Choose a optimize SP type :</label>
+         <select name="sp_type" id="sp_type">
+           <option value="sp_products">SP Customer Search Term</option>
+           <option value="sp_brands">SP Brands</option>
+           <!-- <option value="audi">Audi</option> -->
+         </select>
          <input type = "submit"/>
       </form>   
    </body>

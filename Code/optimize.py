@@ -4,9 +4,21 @@ from datetime import date
 from sqlalchemy import create_engine
 
 
-def read_CSP_report(excel_file='',sheet_name=''):
-    report_df = pd.read_excel(excel_file,sheet_name=sheet_name,index_col=False)
+def read_CSP_report(excel_file=''):
+    report_df = pd.read_excel(excel_file,index_col=False)
     return report_df
+
+def read_bulk_report_CSP(excel_file=''):
+    bulk_df = pd.read_excel(excel_file,index_col=False)
+    df_process = bulk_df[['Campaign Id','Ad Group Id','Portfolio Id','Keyword Id (Read only)','Campaign Name (Informational only)','Portfolio Name (Informational only)','Keyword Text']]
+    df_process.columns = ['Campaign Id','Ad Group Id','Portfolio Id','Keyword Id','Campaign Name','Portfolio Name','Keyword Text']
+    return df_process
+
+def read_bulk_report_Brands(excel_file=''):
+    bulk_df = pd.read_excel(excel_file,index_col=False)
+    df_process = bulk_df[['Campaign Id','Ad Group Id (Read only)','Keyword Id (Read only)','Campaign Name (Informational only)','Portfolio Name (Informational only)','Keyword Text']]
+    df_process.columns = ['Campaign Id','Ad Group Id','Keyword Id','Campaign Name','Portfolio Name','Keyword Text']
+    return df_process
 
 
 # Rules Filter Function
@@ -19,16 +31,23 @@ def filter_CSP_negative(CSP_df: pd.DataFrame,acos,clicks,spend):
     filtered_df.drop_duplicates(inplace=True)
     return filtered_df
 
+def filter_Brands_negative(CSP_df: pd.DataFrame,acos,clicks,spend):
+    filerted_df_1 = CSP_df[CSP_df['Total Advertising Cost of Sales (ACOS) ']>acos]
+    filtered_df_2 = CSP_df[CSP_df['Clicks']>clicks][CSP_df['14 Day Total Sales ']==0]
+    filtered_df_3 = CSP_df[CSP_df['Spend']>spend][CSP_df['14 Day Total Sales ']==0]
+    list_frames = [filerted_df_1,filtered_df_2,filtered_df_3]
+    filtered_df = pd.concat(list_frames)
+    filtered_df.drop_duplicates(inplace=True)
+    return filtered_df
 
 # GET Campaign ID related to Campagin Name columns from DB - table_bulk_products
 # Return Dataframe with Campaign Id columns
-def get_campid_toDF(filtered_df:pd.DataFrame,table_name=''):
-    my_conn = create_engine("mysql+mysqlconnector://root:098poiA#@localhost:3306/ppc")
-    df_campaign = pd.read_sql("SELECT distinct(Campaign_Id), Campaign_Name FROM " + table_name,my_conn)
-    df_campaign.rename(columns={'Campaign_Id':'Campaign Id','Campaign_Name':'Campaign Name'},inplace=True)
-    df_cd = pd.merge(filtered_df, df_campaign, how='left',on = 'Campaign Name')
-
+def get_campid_toDF(filtered_df:pd.DataFrame,bulk_df=pd.DataFrame):
+    filtered_df['Campaign Name'] = filtered_df['Campaign Name'].astype("string")
+    bulk_df['Campaign Name'] = bulk_df['Campaign Name'].astype("string")
+    df_cd = pd.merge(filtered_df, bulk_df, how='left',left_on = 'Campaign Name',right_on = 'Campaign Name')
     return df_cd
+
 
 def create_row_dictonary_kw(columns:list,Targeting='',campaign_id='',ad_group_id=''):
     row_dictionary = {}
@@ -95,11 +114,17 @@ def export_excel_files(filtered_df:pd.DataFrame):
 
 
 if __name__ == '__main__':
-    df_CSP = read_CSP_report('../sample_files/SP Search term report.xlsx',sheet_name='Sponsored Product Search Term R')
+    df_CSP = read_CSP_report('../sample_files/Sponsored Products Search term report .xlsx')
+    df_bulk = read_bulk_report('../sample_files/BULK Sponsored Products Campaigns.xlsx')
     df_CSP_filter = filter_CSP_negative(CSP_df=df_CSP,acos=0.6,clicks=20,spend=20)
     # df_x = get_campid_toDF('table_bulk_products')
+    df_campaign_info = df_bulk[['Campaign Id','Campaign Name']]
+    df_campaign_info.drop_duplicates(inplace=True)
+    df_campaign_info.reset_index(inplace=True)
 
-    df_cd = get_campid_toDF(filtered_df=df_CSP_filter,table_name='table_bulk_products')
+    # df_campaign_info.drop_duplicates(inplace=True,subset=['Campaign Id','Campaign Name'])
+    
+    df_cd = get_campid_toDF(filtered_df=df_CSP_filter,bulk_df=df_campaign_info)
 
     df_export = export_excel_files(filtered_df=df_cd)
     print(df_export)

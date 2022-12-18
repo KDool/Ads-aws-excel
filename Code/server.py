@@ -45,7 +45,14 @@ def setup_bulk():
         print(input_df)
         bulk_dataframe = setup_manual.create_bulk_dataframe(input_df)
         print(bulk_dataframe)
-        return render_template('./setup_manual_asin.html')
+        out = BytesIO()
+        writer = pd.ExcelWriter(out, engine='xlsxwriter')
+        # Export data frame to excel
+        bulk_dataframe.to_excel(excel_writer=writer, index=False, sheet_name='Sheet1')
+        writer.save()
+        writer.close()
+        out.seek(0)
+        return send_file(out, attachment_filename="testing.xlsx", as_attachment=True)
         # return send_file(out, download_name="testing.xlsx", as_attachment=True)
     elif request.method == 'POST' and request.form['setup'] == 'sp_auto':
         f = request.files['file_input']
@@ -54,7 +61,14 @@ def setup_bulk():
         print(input_df)
         bulk_dataframe = setup_Auto.createResultDataFrame(input_df)
         print(bulk_dataframe)
-        return render_template('./setup_manual_asin.html')
+        out = BytesIO()
+        writer = pd.ExcelWriter(out, engine='xlsxwriter')
+        # Export data frame to excel
+        bulk_dataframe.to_excel(excel_writer=writer, index=False, sheet_name='Sheet1')
+        writer.save()
+        writer.close()
+        out.seek(0)
+        return send_file(out, attachment_filename="testing.xlsx", as_attachment=True)
     elif request.method == 'POST' and request.form['setup'] == 'sd':
         f = request.files['file_input']
         input_df = pd.read_excel(f,index_col=False)
@@ -62,20 +76,13 @@ def setup_bulk():
         print(input_df)
         bulk_dataframe = setup_SD.createResultDataFrame(input_df)
         print(bulk_dataframe)
-        return render_template('./setup_manual_asin.html')
-    elif request.method == 'POST' and request.form['button_action'] == 'Total Submit':
-        print('SET UP DATA LIST============================: ', setup_dataframes_list)
-        total_df = pd.concat(setup_dataframes_list)
         out = BytesIO()
         writer = pd.ExcelWriter(out, engine='xlsxwriter')
         # Export data frame to excel
-        total_df.to_excel(excel_writer=writer, index=False, sheet_name='Sheet1')
+        bulk_dataframe.to_excel(excel_writer=writer, index=False, sheet_name='Sheet1')
         writer.save()
         writer.close()
         out.seek(0)
-        
-        setup_dataframes_list = [] #### Clean DataFrame
-        # return send_file(out, download_name="testing.xlsx", as_attachment=True)
         return send_file(out, attachment_filename="testing.xlsx", as_attachment=True)
     else:
         return render_template('./setup_manual_asin.html')
@@ -93,17 +100,29 @@ def upload_file():
 @app.route('/uploader', methods = ['GET', 'POST'])
 def uploader_file():
     if request.method == 'POST':
-        f = request.files['file']
-        f.save(secure_filename(f.filename))
+        file_bulk = request.files['file_bulk']
+        file_report = request.files['file_report']
+        # f.save(secure_filename(f.filename))
 
         acos = float(request.form['Acos'])
         clicks = int(request.form['Clicks'])
         spend = float(request.form['Spend'])
         print(acos,clicks,spend)
+        df_CSP = optimize.read_CSP_report(excel_file=file_report)
+        if request.form['sp_type']=='sp_products':
+            df_CSP_filter = optimize.filter_CSP_negative(CSP_df=df_CSP,acos=acos,clicks=clicks,spend=spend)
+            df_bulk = optimize.read_bulk_report_CSP(excel_file=file_bulk)
+        elif request.form['sp_type']=='sp_brands':
+            df_CSP_filter = optimize.filter_Brands_negative(CSP_df=df_CSP,acos=acos,clicks=clicks,spend=spend)
+            df_bulk = optimize.read_bulk_report_Brands(excel_file=file_bulk)
+        else:
+            return "ERROR"
+        # df_bulk = optimize.read_bulk_report(excel_file=file_bulk)
+        df_campaign_info = df_bulk[['Campaign Id','Campaign Name']]
+        df_campaign_info.drop_duplicates(inplace=True)
+        df_campaign_info.reset_index(inplace=True)
 
-        df_CSP = optimize.read_CSP_report(excel_file=f,sheet_name='Sponsored Product Search Term R')
-        df_CSP_filter = optimize.filter_CSP_negative(CSP_df=df_CSP,acos=acos,clicks=clicks,spend=spend)
-        df_cd = optimize.get_campid_toDF(filtered_df=df_CSP_filter,table_name='table_bulk_products')
+        df_cd = optimize.get_campid_toDF(filtered_df=df_CSP_filter,bulk_df=df_campaign_info)
         df_export = optimize.export_excel_files(filtered_df=df_cd)
         
         out = BytesIO()
