@@ -10,7 +10,8 @@ import pandas as pd
 import setup_manual
 import setup_Auto
 import setup_SD
-import optimize
+import optimize_negative
+import optimize_bid
 from io import BytesIO
 from werkzeug.utils import secure_filename
 import os
@@ -108,13 +109,13 @@ def uploader_file():
         clicks = int(request.form['Clicks'])
         spend = float(request.form['Spend'])
         print(acos,clicks,spend)
-        df_CSP = optimize.read_CSP_report(excel_file=file_report)
+        df_CSP = optimize_negative.read_CSP_report(excel_file=file_report)
         if request.form['sp_type']=='sp_products':
-            df_CSP_filter = optimize.filter_CSP_negative(CSP_df=df_CSP,acos=acos,clicks=clicks,spend=spend)
-            df_bulk = optimize.read_bulk_report_CSP(excel_file=file_bulk)
+            df_CSP_filter = optimize_negative.filter_CSP_negative(CSP_df=df_CSP,acos=acos,clicks=clicks,spend=spend)
+            df_bulk = optimize_negative.read_bulk_report_CSP(excel_file=file_bulk)
         elif request.form['sp_type']=='sp_brands':
-            df_CSP_filter = optimize.filter_Brands_negative(CSP_df=df_CSP,acos=acos,clicks=clicks,spend=spend)
-            df_bulk = optimize.read_bulk_report_Brands(excel_file=file_bulk)
+            df_CSP_filter = optimize_negative.filter_Brands_negative(CSP_df=df_CSP,acos=acos,clicks=clicks,spend=spend)
+            df_bulk = optimize_negative.read_bulk_report_Brands(excel_file=file_bulk)
         else:
             return "ERROR"
         # df_bulk = optimize.read_bulk_report(excel_file=file_bulk)
@@ -122,8 +123,8 @@ def uploader_file():
         df_campaign_info.drop_duplicates(inplace=True)
         df_campaign_info.reset_index(inplace=True)
 
-        df_cd = optimize.get_campid_toDF(filtered_df=df_CSP_filter,bulk_df=df_campaign_info)
-        df_export = optimize.export_excel_files(filtered_df=df_cd)
+        df_cd = optimize_negative.get_campid_toDF(filtered_df=df_CSP_filter,bulk_df=df_campaign_info)
+        df_export = optimize_negative.export_excel_files(filtered_df=df_cd)
         
         out = BytesIO()
         writer = pd.ExcelWriter(out, engine='xlsxwriter')
@@ -136,6 +137,72 @@ def uploader_file():
         return send_file(out, attachment_filename="testing.xlsx", as_attachment=True)
     # return 'Uploaded sucessfully'
 
+@app.route('/optimize_bid', methods = ['GET', 'POST'])
+def bid_optimize():
+    if request.method == 'POST':
+        file_bulk = request.files['file_bulk']
+        file_report = request.files['file_report']
+        
+        acos = float(request.form['Acos'])
+        clicks = int(request.form['Clicks'])
+        spend = float(request.form['Spend'])
+        old_bid = float(request.form['old_bid'])
+        dates_diff = int(request.form['dates_diff'])
+        impression = float(request.form['impression'])
+        increase_bid = float(request.form['bid_upper'])
+    else:
+        return render_template('./optimize_bid.html')
+
+    ##### Read Report
+    df_report = pd.read_excel(file_report,index_col=False)
+    if request.form['bid_type'] == 'down_bid':
+        if request.form['rp_type'] == 'sp_targeting':
+            bulk_df = optimize_bid.read_bulk_report_SP(file_bulk)
+            filtered_report = optimize_bid.filter_SP_downbid(df_report,acos=acos,clicks=clicks,spend=spend)
+        elif request.form['rp_type'] == 'sd_targeting':
+            bulk_df = optimize_bid.read_bulk_report_SD(file_bulk)
+            filtered_report = optimize_bid.filter_SD_downbid(df_report,acos=acos,spend=spend)
+        elif request.form['rp_type'] == 'sb_keyword':
+            bulk_df = optimize_bid.read_bulk_report_Brands(file_bulk)
+            filtered_report = optimize_bid.filter_SB_downbid(df_report,acos=acos,clicks=clicks,spend=spend)
+        else:
+            return 'ERROR input'
+
+        df_getAll_information = optimize_bid.get_campid_toDF(filtered_df=filtered_report,bulk_df=bulk_df)
+        df_export = optimize_bid.export_excel_files(filtered_df=df_getAll_information,old_bid=old_bid,increase_number=increase_bid)
+        out = BytesIO()
+        writer = pd.ExcelWriter(out, engine='xlsxwriter')
+        # Export data frame to excel
+        df_export.to_excel(excel_writer=writer, index=False, sheet_name='Sheet1')
+        writer.save()
+        writer.close()
+        out.seek(0)
+        return send_file(out, attachment_filename="testing.xlsx", as_attachment=True)
+    
+    elif request.form['bid_type'] == 'up_bid':
+        if request.form['rp_type'] == 'sp_targeting':
+            bulk_df = optimize_bid.read_bulk_report_SP(file_bulk)
+            # filtered_report = optimize_bid.filter_upbid()
+        elif request.form['rp_type'] == 'sd_targeting':
+            bulk_df = optimize_bid.read_bulk_report_SD(file_bulk)
+            # filtered_report = optimize_bid.filter_SD_downbid(df_report,acos=acos,spend=spend)
+        elif request.form['rp_type'] == 'sb_keyword':
+            bulk_df = optimize_bid.read_bulk_report_Brands(file_bulk)
+            # filtered_report = optimize_bid.filter_SB_downbid(df_report,acos=acos,clicks=clicks,spend=spend)
+        else:
+            return 'ERROR input'
+        filtered_report = optimize_bid.filter_upbid(df_report,dates_diff=dates_diff,impressions=impression)
+        df_getAll_information = optimize_bid.get_campid_toDF(filtered_df=filtered_report,bulk_df=bulk_df)
+        df_export = optimize_bid.export_excel_files(filtered_df=df_getAll_information,old_bid=old_bid,increase_number=increase_bid)
+        out = BytesIO()
+        writer = pd.ExcelWriter(out, engine='xlsxwriter')
+        # Export data frame to excel
+        df_export.to_excel(excel_writer=writer, index=False, sheet_name='Sheet1')
+        writer.save()
+        writer.close()
+        out.seek(0)
+        return send_file(out, attachment_filename="testing.xlsx", as_attachment=True)
+    return render_template('./optimize_bid.html')
 
 
 
