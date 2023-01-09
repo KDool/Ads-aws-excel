@@ -10,14 +10,16 @@ def read_CSP_report(excel_file=''):
 
 def read_bulk_report_CSP(excel_file=''):
     bulk_df = pd.read_excel(excel_file,index_col=False)
-    df_process = bulk_df[['Campaign Id','Ad Group Id','Portfolio Id','Keyword Id (Read only)','Campaign Name (Informational only)','Portfolio Name (Informational only)','Keyword Text']]
-    df_process.columns = ['Campaign Id','Ad Group Id','Portfolio Id','Keyword Id','Campaign Name','Portfolio Name','Keyword Text']
+    df_process = bulk_df[['Campaign Id','Ad Group Id','Portfolio Id','Keyword Id (Read only)','Campaign Name (Informational only)','Portfolio Name (Informational only)','Keyword Text','Campaign State (Informational only)']]
+    df_process.columns = ['Campaign Id','Ad Group Id','Portfolio Id','Keyword Id','Campaign Name','Portfolio Name','Keyword Text','Campaign State']
+    df_process = df_process[df_process['Campaign State']!='archived']
     return df_process
 
 def read_bulk_report_Brands(excel_file=''):
     bulk_df = pd.read_excel(excel_file,index_col=False)
-    df_process = bulk_df[['Campaign Id','Ad Group Id (Read only)','Keyword Id (Read only)','Campaign Name (Informational only)','Portfolio Name (Informational only)','Keyword Text']]
-    df_process.columns = ['Campaign Id','Ad Group Id','Keyword Id','Campaign Name','Portfolio Name','Keyword Text']
+    df_process = bulk_df[['Campaign Id','Ad Group Id (Read only)','Keyword Id (Read only)','Campaign Name (Informational only)','Portfolio Name (Informational only)','Keyword Text','Campaign State (Informational only)']]
+    df_process.columns = ['Campaign Id','Ad Group Id','Keyword Id','Campaign Name','Portfolio Name','Keyword Text','Campaign State']
+    df_process = df_process[df_process['Campaign State']!='archived']
     return df_process
 
 
@@ -46,6 +48,7 @@ def get_campid_toDF(filtered_df:pd.DataFrame,bulk_df=pd.DataFrame):
     filtered_df['Campaign Name'] = filtered_df['Campaign Name'].astype("string")
     bulk_df['Campaign Name'] = bulk_df['Campaign Name'].astype("string")
     df_cd = pd.merge(filtered_df, bulk_df, how='left',left_on = 'Campaign Name',right_on = 'Campaign Name')
+
     return df_cd
 
 

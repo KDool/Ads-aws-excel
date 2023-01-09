@@ -5,16 +5,18 @@ from datetime import date
 #Read Bulk Product search term function
 def read_bulk_report_SP(excel_file=''):
     bulk_df = pd.read_excel(excel_file,index_col=False)
-    df_process = bulk_df[['Campaign Id','Ad Group Id','Portfolio Id','Keyword Id (Read only)','Campaign Name (Informational only)','Ad Group Name (Informational only)','Portfolio Name (Informational only)','Keyword Text']]
-    df_process.columns = ['Campaign Id','Ad Group Id','Portfolio Id','Keyword Id','Campaign Name','Ad Group Name','Portfolio Name','Keyword Text']
+    df_process = bulk_df[['Campaign Id','Ad Group Id','Portfolio Id','Keyword Id (Read only)','Campaign Name (Informational only)','Ad Group Name (Informational only)','Portfolio Name (Informational only)','Keyword Text','Campaign State (Informational only)']]
+    df_process.columns = ['Campaign Id','Ad Group Id','Portfolio Id','Keyword Id','Campaign Name','Ad Group Name','Portfolio Name','Keyword Text','Campaign State']
+    df_process = df_process[df_process['Campaign State']!='archived']
     return df_process
 
 #Read Bulk Brand function
 def read_bulk_report_Brands(excel_file=''):
     bulk_df = pd.read_excel(excel_file,index_col=False)
-    df_process = bulk_df[['Campaign Id','Ad Group Id (Read only)','Keyword Id (Read only)','Campaign Name (Informational only)','Portfolio Name (Informational only)','Keyword Text']]
-    df_process.columns = ['Campaign Id','Ad Group Id','Keyword Id','Campaign Name','Portfolio Name','Keyword Text']
+    df_process = bulk_df[['Campaign Id','Ad Group Id (Read only)','Keyword Id (Read only)','Campaign Name (Informational only)','Portfolio Name (Informational only)','Keyword Text','Campaign State (Informational only)']]
+    df_process.columns = ['Campaign Id','Ad Group Id','Keyword Id','Campaign Name','Portfolio Name','Keyword Text','Campaign State']
     df_process['Ad Group Name'] = df_process['Campaign Name']
+    df_process = df_process[df_process['Campaign State']!='archived']
     return df_process
 
 #read Bulk Display function
@@ -25,8 +27,9 @@ def read_bulk_report_Brands(excel_file=''):
 #     return df_process
 def read_bulk_report_SD(excel_file=''):
     bulk_df = pd.read_excel(excel_file,index_col=False)
-    df_process = bulk_df[['Campaign Id','Ad Group Id','Campaign Name (Informational only)','Ad Group Name (Informational only)','Targeting Expression']]
-    df_process.columns = ['Campaign Id','Ad Group Id','Campaign Name','Ad Group Name','Targeting Expression']
+    df_process = bulk_df[['Campaign Id','Ad Group Id','Campaign Name (Informational only)','Ad Group Name (Informational only)','Targeting Expression','Campaign State (Informational only)']]
+    df_process.columns = ['Campaign Id','Ad Group Id','Campaign Name','Ad Group Name','Targeting Expression','Campaign State']
+    df_process = df_process[df_process['Campaign State']!='archived']
     # df_process = bulk_df
     return df_process
 
